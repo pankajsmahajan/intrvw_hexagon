@@ -3,13 +3,17 @@ Section 1
 	Years of Experience: 14 years
 
 Section 2
-	Build IDE: Eclipse Java EE IDE (Version: Oxygen.3a Release(4.7.3a))
-	JDK Version: java version "1.8.0_145"
+	Build IDE: Eclipse Java EE IDE
+	JDK Version: java version "1.8.0_45"
 
 Section 3
-	a) SonarLint (image git URl)
+	a) SonarLint https://github.com/pankajsmahajan/intrvw_hexagon/blob/master/images_snapshot/Sonarlint_snapshot.jpg 
 	b) Final output (image git url)
-	c) jUnit coverage (image git url)
+		https://github.com/pankajsmahajan/intrvw_hexagon/blob/master/images_snapshot/finaloutput_amex.jpg
+		https://github.com/pankajsmahajan/intrvw_hexagon/blob/master/images_snapshot/finaloutput_discover.jpg
+		https://github.com/pankajsmahajan/intrvw_hexagon/blob/master/images_snapshot/finaloutput_master.jpg
+		https://github.com/pankajsmahajan/intrvw_hexagon/blob/master/images_snapshot/finaloutput_visa.jpg
+	c) jUnit coverage https://github.com/pankajsmahajan/intrvw_hexagon/blob/master/images_snapshot/coverage.jpg 
 
 Section 4
 	Licensing
