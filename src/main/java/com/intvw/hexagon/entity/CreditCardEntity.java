@@ -1,5 +1,6 @@
 package com.intvw.hexagon.entity;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -9,9 +10,19 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+/**
+ * Entity mapped to CARD_TABLE
+ * @author pankaj.mahajan
+ *
+ */
 @Entity
 @Table(name="CARD_TABLE")
-public class CreditCardEntity {
+public class CreditCardEntity implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2803098305170753041L;
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)

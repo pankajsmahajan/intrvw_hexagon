@@ -3,9 +3,12 @@ package com.intvw.hexagon.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,10 +23,17 @@ import com.intvw.hexagon.repository.CreditCardRepository;
 import com.intvw.hexagon.service.CreditCardService;
 import com.intvw.hexagon.service.impl.CreditCardProprties;
 
+/**
+ * This is rest controller for credit card generator.
+ * @author pankaj.mahajan
+ *
+ */
 @RestController
 @RequestMapping(value="/v1")
 public class CreditCardController {
 
+	private final Logger LOGGER = LoggerFactory.getLogger(CreditCardController.class);
+	
 	@Autowired
 	private CreditCardService creditCardService;
 	
@@ -35,18 +45,30 @@ public class CreditCardController {
 	
 	@Autowired
 	private Environment env;
-	
-	@RequestMapping(value="/cardtype/{cardType}/numberofcards/{numberOfCards}",method=RequestMethod.GET)
+
+	/**
+	 * This API will take card type and number of cards to be generated.
+	 * First it will generate card numbers, then it will validate and if valid then will add 
+	 * expire date to card and after that it will save card details into HSQLDB
+	 * Finally it will return valid card data.
+	 * @param cardType
+	 * @param numberOfCards
+	 * @return
+	 */
+	@RequestMapping(value="/cardtype/{cardType}/numberofcards/{numberOfCards}",method=RequestMethod.GET,produces= {MediaType.APPLICATION_JSON_VALUE})
 	public ResponseEntity<CreditCardAttributes> generateCreditCardNumber(@PathVariable String cardType,@PathVariable Integer numberOfCards){
+		LOGGER.info("Method : generateCreditCardNumber - Start");
+		
 		ResponseEntity<CreditCardAttributes> responseData = null;
 		
 		if(!validCardType(cardType)){
-			CardNumberGeneratorException exd = new CardNumberGeneratorException("Card Type is not valid!");
-			exd.setStatus(HttpStatus.BAD_REQUEST.value());
-			throw exd;
+			throw new CardNumberGeneratorException("Card Type is not valid!");
+		}
+		if(numberOfCards<=0) {
+			throw new CardNumberGeneratorException("Number of cards to be generated should be greator than 0");
 		}
 		
-		CreditCardAttributes cardAttributes = createCardAttribute(cardType,numberOfCards);
+		CreditCardAttributes cardAttributes = createCardAttribute(cardType);
 		List<CreditCardData> cardDataList = new ArrayList<>();
 		CreditCardData cardData = null;		
 		try{
@@ -61,39 +83,45 @@ public class CreditCardController {
 				cardData = new CreditCardData();
 				cardData.setCardNumber(cardNumber);
 				cardDataList.add(cardData);
-				System.out.println("Generated Card Number = " + cardNumber);
+				
 			}
 			cardAttributes.setCardDataList(cardDataList);
 			
 			//Validate generated card number
-			creditCardService.validateGeneratedCardNumber(cardAttributes);
+			cardAttributes = creditCardService.validateGeneratedCardNumber(cardAttributes);
 			
 			//Save valid card into DB
-			CreditCardEntity cardEntity = null;
-			for(CreditCardData obj : cardAttributes.getCardDataList()){
-				cardEntity = new CreditCardEntity();
-				cardEntity.setCardExpiryDate(obj.getCardExpiryDate());
-				cardEntity.setCardNumber(obj.getCardNumber());
-				cardEntity.setCardType(cardAttributes.getCardType());
-				creditCardRepositoy.save(cardEntity);
+			if(cardAttributes != null) {
+				CreditCardEntity cardEntity = null;
+				for(CreditCardData obj : cardAttributes.getCardDataList()){
+					cardEntity = new CreditCardEntity();
+					cardEntity.setCardExpiryDate(obj.getCardExpiryDate());
+					cardEntity.setCardNumber(obj.getCardNumber());
+					cardEntity.setCardType(cardAttributes.getCardType());
+					cardEntity= creditCardRepositoy.save(cardEntity);
+					obj.setCardId(cardEntity.getId());
+				}
 			}
 		}catch(Exception ex){
-			CardNumberGeneratorException exd = new CardNumberGeneratorException("Card Generation internal server error!" + ex.getMessage());
-			exd.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-			throw exd;
+			throw new CardNumberGeneratorException("Card Generation internal server error!" + ex.getMessage());
 		}
 		responseData = new ResponseEntity<>(cardAttributes,HttpStatus.CREATED);
+		LOGGER.info("Method : generateCreditCardNumber - End");
 		return responseData;
 	}
 
-	private CreditCardAttributes createCardAttribute(String cardType, Integer numberOfCards) {
-		StringBuffer key = new StringBuffer();
+	/**
+	 * Method  to create card attribute object for card number generation service.
+	 * @param cardType
+	 * @return
+	 */
+	private CreditCardAttributes createCardAttribute(String cardType) {
+		StringBuilder key = new StringBuilder();
 		key.append(cardType.toUpperCase());
 		String val1 = env.getProperty(key.append(".length").toString());
-		System.out.println("val1 == " + val1);
 		int len = Integer.parseInt(val1);
 		
-		key = new StringBuffer();
+		key = new StringBuilder();
 		key.append(cardType.toUpperCase());
 		String val2 = env.getProperty(key.append(".firstdigit").toString());
 		
@@ -101,16 +129,21 @@ public class CreditCardController {
 		cardAttributes.setLength(len);
 		cardAttributes.setStartingDigit(val2);
 		cardAttributes.setCardType(cardType);
-		System.out.println("cardAttributes = " + cardAttributes);
+		
 		return cardAttributes;
 	}
 
+	/**
+	 * Method to check valid cccard type
+	 * @param cardType
+	 * @return
+	 */
 	private boolean validCardType(String cardType) {
 		boolean validCard = false;
 		if(cardProperties != null){
 			List<String> supportedVisaTypes = cardProperties.getType();
 			for (String ele : supportedVisaTypes) {
-				if(cardType.toUpperCase().equals(ele)){
+				if(cardType.equalsIgnoreCase(ele)){
 					validCard = true;
 					break;
 				}

@@ -4,6 +4,11 @@ import java.util.Date;
 
 import com.intvw.hexagon.model.CreditCardData;
 
+/**
+ * Runnable implementation to validate card number.
+ * @author pankaj.mahajan
+ *
+ */
 public class CardValidatorThread implements Runnable {
 
 	
@@ -23,7 +28,9 @@ public class CardValidatorThread implements Runnable {
 		this.cardData = cardData;
 	}
 
-
+	/**
+	 * Method checks card validity for length, starting digit and check sum digit.
+	 */
 	@Override
 	public void run() {
 		
@@ -45,6 +52,11 @@ public class CardValidatorThread implements Runnable {
 				this.cardData.setCardExpiryDate(new Date());
 			}
 	}
+	/**
+	 * Method checks card validity for last digit.
+	 * @param cardNumber
+	 * @return
+	 */
 	private boolean isValidCardNumber(String cardNumber){
 		int k=0;
 		int multipleOfTwo=0;

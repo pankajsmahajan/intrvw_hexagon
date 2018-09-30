@@ -3,6 +3,11 @@ package com.intvw.hexagon.model;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * Utility class to carry data from controller to service and from service to controller.
+ * @author pankaj.mahajan
+ *
+ */
 public class CreditCardAttributes implements Serializable {
 
 	/**
@@ -47,10 +52,5 @@ public class CreditCardAttributes implements Serializable {
 	}
 	public void setStartingDigit(String startingDigit) {
 		this.startingDigit = startingDigit;
-	}
-	@Override
-	public String toString() {
-		return "CreditCardAttributes [length=" + length + ", startingDigit=" + startingDigit
-				+  "]";
 	}
 }

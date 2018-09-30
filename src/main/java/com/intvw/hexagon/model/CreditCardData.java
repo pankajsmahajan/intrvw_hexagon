@@ -3,6 +3,11 @@ package com.intvw.hexagon.model;
 import java.io.Serializable;
 import java.util.Date;
 
+/**
+ * Utility class to hold card data like; number,type and expiry date.
+ * @author pankaj.mahajan
+ *
+ */
 public class CreditCardData implements Serializable {
 
 	/**
@@ -13,7 +18,14 @@ public class CreditCardData implements Serializable {
 	private String cardNumber;
 	private Date cardExpiryDate;
 	private boolean valid;
+	private long cardId;
 	
+	public long getCardId() {
+		return cardId;
+	}
+	public void setCardId(long cardId) {
+		this.cardId = cardId;
+	}
 	public boolean isValid() {
 		return valid;
 	}

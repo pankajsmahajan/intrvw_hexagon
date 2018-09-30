@@ -4,21 +4,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.intvw.hexagon.exception.CardNumberGeneratorException;
 import com.intvw.hexagon.model.CreditCardAttributes;
 import com.intvw.hexagon.model.CreditCardData;
 import com.intvw.hexagon.service.CreditCardService;
 
+/**
+ * Service implementation of credit card service. It provides implementation for generate card method and validate card number.
+ * @author pankaj.mahajan
+ *
+ */
 @Service
 public class CreditCardServiceImpl implements CreditCardService {
-
+	
+	private final Logger LOGGER = LoggerFactory.getLogger(CreditCardServiceImpl.class);
+	
 	@Override
-	public String generateCreditCard(CreditCardAttributes cardAttributes) throws CardNumberGeneratorException {
+	public String generateCreditCard(CreditCardAttributes cardAttributes) {
 		
-		System.out.println("cardAttributes in service " + cardAttributes);
 		
+		LOGGER.info("Method : generateCreditCard - Start");
 		//int array for card number
 		int[] cardNumber = new int[cardAttributes.getLength()];
 		
@@ -67,16 +75,16 @@ public class CreditCardServiceImpl implements CreditCardService {
 		}
 		
 		//Convert card number into string value
-		StringBuffer creditCardNumber = new StringBuffer();
+		StringBuilder creditCardNumber = new StringBuilder();
 		for(int i=0; i < cardNumber.length;i++){
 			creditCardNumber.append(cardNumber[i]);
 		}
-		System.out.println(creditCardNumber.toString());
+		LOGGER.info("Method : generateCreditCard - End");
 		return creditCardNumber.toString();
 	}
 
 	@Override
-	public void validateGeneratedCardNumber(CreditCardAttributes cardAttributes) throws CardNumberGeneratorException {
+	public CreditCardAttributes validateGeneratedCardNumber(CreditCardAttributes cardAttributes) throws InterruptedException {
 		CardValidatorThread threadRunnable = null;
 		List<Thread> cardValidatorThread = new ArrayList<>();
 		for(CreditCardData obj : cardAttributes.getCardDataList()){
@@ -85,13 +93,11 @@ public class CreditCardServiceImpl implements CreditCardService {
 			cardValidatorThread.add(validatorThread);
 			validatorThread.start();
 		}
-		try{
+		
 			for(Thread obj : cardValidatorThread){
 				obj.join();
 			}
-		}catch(InterruptedException iex){
-			throw new CardNumberGeneratorException(iex.getMessage());
-		}
+		
 		List<CreditCardData> validCardList = new ArrayList<>();
 		for(CreditCardData obj : cardAttributes.getCardDataList()){
 			if(obj.getCardExpiryDate()!=null && obj.isValid()){
@@ -99,6 +105,7 @@ public class CreditCardServiceImpl implements CreditCardService {
 			}
 		}
 		cardAttributes.setCardDataList(validCardList);
+		return cardAttributes;
 	}
 
 
